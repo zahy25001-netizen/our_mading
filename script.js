@@ -139,9 +139,19 @@ function filteredNotes(){
   return list;
 }
 function ensureBoardHeight(){
-  const minHeight=window.innerWidth<=800?1100:900; let needed=minHeight;
-  notes.forEach(n=>{if(Number.isFinite(n.y))needed=Math.max(needed,n.y+300)});
-  board.style.minHeight=needed+"px";
+  const minHeight = window.innerWidth <= 800 ? 1100 : 900;
+  let needed = minHeight;
+
+  // Hitung berdasarkan ukuran note yang benar-benar sudah dirender.
+  // Ini mencegah note panjang keluar dari bagian bawah mading.
+  const boardRect = board.getBoundingClientRect();
+  board.querySelectorAll(".sticky-note").forEach(el => {
+    const rect = el.getBoundingClientRect();
+    const bottom = rect.bottom - boardRect.top;
+    needed = Math.max(needed, bottom + 60);
+  });
+
+  board.style.minHeight = `${Math.ceil(needed)}px`;
 }
 function arrangeNewNotePosition(note){
   if(note.x!=null&&note.y!=null)return;
@@ -151,8 +161,24 @@ function arrangeNewNotePosition(note){
 }
 function scrollToNote(note){requestAnimationFrame(()=>{const el=board.querySelector(`[data-id="${note.id}"]`);if(el)el.scrollIntoView({behavior:"smooth",block:"center"})})}
 function render(){
-  board.innerHTML=""; notes.forEach(arrangeNewNotePosition); ensureBoardHeight(); $("#noteCount").textContent=notes.length;
-  const list=filteredNotes(); setHidden($("#emptyState"),list.length!==0); if(!list.length)return; list.forEach((n,i)=>board.appendChild(makeNote(n,i))); ensureBoardHeight();
+  board.innerHTML = "";
+  notes.forEach(arrangeNewNotePosition);
+  $("#noteCount").textContent = notes.length;
+
+  const list = filteredNotes();
+  setHidden($("#emptyState"), list.length !== 0);
+
+  if(!list.length){
+    ensureBoardHeight();
+    return;
+  }
+
+  // Render dulu, baru ukur tinggi note sebenarnya.
+  list.forEach((n,i) => board.appendChild(makeNote(n,i)));
+
+  requestAnimationFrame(() => {
+    ensureBoardHeight();
+  });
 }
 function makeNote(n,i){
   const el=document.createElement("article"); el.className=`sticky-note ${n.color||"cream"}`; el.dataset.id=n.id;
@@ -220,6 +246,7 @@ function attachDrag(el,n){
     const finalX=n.x, finalY=n.y;
     dragState=null;
     await updateNote(n.id,{x:finalX,y:finalY});
+    requestAnimationFrame(() => ensureBoardHeight());
   };
   el.addEventListener("pointerup",finish);
   el.addEventListener("pointercancel",finish);
