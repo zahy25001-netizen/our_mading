@@ -37,7 +37,13 @@ const board = $("#board");
 const modal = $("#editorModal");
 
 function uid(){ return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2); }
-function today(){ return new Date().toISOString().slice(0,10); }
+function today(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
 function esc(s=""){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
 function formatDate(s){ if(!s) return ""; const d=new Date(s+"T00:00:00"); return d.toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}); }
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove("show"),2600); }
@@ -64,7 +70,16 @@ async function ensureAuth(){
   const {data:{session}} = await sb.auth.getSession();
   if(session) return true;
   const {error} = await sb.auth.signInAnonymously();
-  if(error){ toast("Anonymous Sign-Ins belum aktif di Supabase."); console.error(error); return false; }
+  if(error){
+    console.error("Anonymous sign-in error:", error);
+    const msg = String(error.message || "");
+    if(msg.toLowerCase().includes("anonymous") || msg.toLowerCase().includes("disabled")){
+      toast("Anonymous Sign-Ins belum aktif di Supabase.");
+    }else{
+      toast(`Gagal masuk ke Supabase: ${error.message || "cek Auth"}`);
+    }
+    return false;
+  }
   return true;
 }
 
@@ -150,9 +165,67 @@ function makeNote(n,i){
   el.addEventListener("dblclick",()=>openViewer(n)); attachDrag(el,n); return el;
 }
 function attachDrag(el,n){
-  el.addEventListener("pointerdown",e=>{if(e.target.closest("button,audio,img"))return;el.setPointerCapture(e.pointerId);const r=el.getBoundingClientRect();dragState={el,n,dx:e.clientX-r.left,dy:e.clientY-r.top};el.classList.add("dragging")});
-  el.addEventListener("pointermove",e=>{if(!dragState||dragState.el!==el)return;const br=board.getBoundingClientRect();const x=clamp(e.clientX-br.left-dragState.dx,10,Math.max(10,board.clientWidth-el.offsetWidth-10));const y=Math.max(10,e.clientY-br.top-dragState.dy);el.style.left=x+"px";el.style.top=y+"px";n.x=x;n.y=y;if(y+el.offsetHeight+100>board.clientHeight)board.style.minHeight=(y+el.offsetHeight+140)+"px"});
-  el.addEventListener("pointerup",async()=>{if(!dragState||dragState.el!==el)return;el.classList.remove("dragging");dragState=null;await updateNote(n.id,{x:n.x,y:n.y})});
+  // Desktop: drag langsung. Mobile/tablet: tahan sebentar agar scroll biasa tidak ikut menyeret note.
+  let pressTimer = null;
+  let pending = null;
+  let movedBeforeDrag = false;
+  const isTouch = () => window.matchMedia("(pointer: coarse)").matches;
+  const cancelPending = () => {
+    if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; }
+    pending=null;
+  };
+  const beginDrag = (e) => {
+    const r=el.getBoundingClientRect();
+    el.setPointerCapture?.(e.pointerId);
+    dragState={el,n,dx:e.clientX-r.left,dy:e.clientY-r.top,pointerId:e.pointerId};
+    el.classList.add("dragging");
+    if(navigator.vibrate) navigator.vibrate(12);
+  };
+
+  el.addEventListener("pointerdown",e=>{
+    if(e.target.closest("button,audio,img,input,textarea"))return;
+    movedBeforeDrag=false;
+    if(isTouch()){
+      pending={x:e.clientX,y:e.clientY,pointerId:e.pointerId};
+      pressTimer=setTimeout(()=>{
+        if(pending && !movedBeforeDrag) beginDrag(e);
+      },360);
+    }else{
+      beginDrag(e);
+    }
+  });
+
+  el.addEventListener("pointermove",e=>{
+    if(pending && !dragState){
+      const dx=e.clientX-pending.x, dy=e.clientY-pending.y;
+      if(Math.hypot(dx,dy)>9){ movedBeforeDrag=true; cancelPending(); }
+      return;
+    }
+    if(!dragState||dragState.el!==el)return;
+    e.preventDefault();
+    const br=board.getBoundingClientRect();
+    const x=clamp(e.clientX-br.left-dragState.dx,10,Math.max(10,board.clientWidth-el.offsetWidth-10));
+    // Di HP hanya geser kiri/kanan. Scroll vertikal halaman tetap normal.
+    const touchMode = window.matchMedia("(pointer: coarse)").matches;
+    const y = touchMode ? (n.y ?? 10) : Math.max(10,e.clientY-br.top-dragState.dy);
+    el.style.left=x+"px";el.style.top=y+"px";n.x=x;n.y=y;
+    if(!touchMode && y+el.offsetHeight+100>board.clientHeight)board.style.minHeight=(y+el.offsetHeight+140)+"px";
+  });
+
+  const finish=async e=>{
+    if(pending && !dragState) cancelPending();
+    if(!dragState||dragState.el!==el)return;
+    try{el.releasePointerCapture?.(dragState.pointerId ?? e.pointerId)}catch{}
+    el.classList.remove("dragging");
+    const finalX=n.x, finalY=n.y;
+    dragState=null;
+    await updateNote(n.id,{x:finalX,y:finalY});
+  };
+  el.addEventListener("pointerup",finish);
+  el.addEventListener("pointercancel",finish);
+  el.addEventListener("lostpointercapture",()=>{
+    if(dragState?.el===el){ el.classList.remove("dragging"); dragState=null; }
+  });
 }
 
 async function updateNote(id,patch){
@@ -249,9 +322,15 @@ $("#themeBtn").onclick=()=>{document.body.classList.toggle("dark");localStorage.
 $("#musicBtn").onclick=()=>$("#musicModal").classList.remove("hidden");$("#closeMusic").onclick=()=>$("#musicModal").classList.add("hidden");$("#musicModal").onclick=e=>{if(e.target.id==="musicModal")$("#musicModal").classList.add("hidden")};
 $("#musicInput").onchange=e=>{const file=e.target.files[0];if(!file)return;if(musicUrl)URL.revokeObjectURL(musicUrl);musicUrl=URL.createObjectURL(file);$("#bgMusic").src=musicUrl;toast("Musik siap diputar ♫")};$("#playMusic").onclick=async()=>{if(!$("#bgMusic").src){toast("Pilih file musik dulu.");return}try{await $("#bgMusic").play()}catch(e){toast("Tekan play pada pemutar musik.")}};$("#clearMusic").onclick=()=>{$("#bgMusic").pause();$("#bgMusic").removeAttribute("src");$("#musicInput").value="";if(musicUrl)URL.revokeObjectURL(musicUrl);musicUrl=null;toast("Musik dihapus.")};
 
-window.addEventListener("resize",()=>{ensureBoardHeight();render()});
+let resizeTimer=null;
+window.addEventListener("resize",()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(()=>{ensureBoardHeight();render()},180);
+});
 
 async function init(){
+  const dateInput=$("#noteDate");
+  if(dateInput){ dateInput.value=today(); dateInput.max=today(); }
   const savedTheme=localStorage.getItem("mading-theme");if(savedTheme==="dark"){$("body").classList.add("dark");$("#themeBtn").textContent="☀"}
   updateRoomUI();$("#noteDate").value=today();
   if(!isConfigured){toast("Supabase belum dikonfigurasi. Isi supabase-config.js dulu.");openRoomModal();return}
