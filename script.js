@@ -154,10 +154,37 @@ function ensureBoardHeight(){
   board.style.minHeight = `${Math.ceil(needed)}px`;
 }
 function arrangeNewNotePosition(note){
+  // Posisi yang sudah tersimpan jangan diubah.
   if(note.x!=null&&note.y!=null)return;
-  const gap=28, noteW=window.innerWidth<=500?175:(window.innerWidth<=800?190:230), noteH=window.innerWidth<=800?220:250;
-  const cols=Math.max(1,Math.floor((board.clientWidth-80)/(noteW+gap))); const i=Math.max(0,notes.findIndex(x=>x.id===note.id));
-  note.x=30+(i%cols)*(noteW+gap); note.y=35+Math.floor(i/cols)*(noteH+gap); note.rot=note.rot??((Math.random()*5)-2.5);
+
+  const gap = 28;
+  const noteW = window.innerWidth<=500 ? 175 : (window.innerWidth<=800 ? 190 : 230);
+  const estimatedH = window.innerWidth<=800 ? 240 : 280;
+
+  // Kalau sudah ada note, note baru selalu ditempatkan di bawah
+  // note yang paling bawah. Jadi pengguna tidak perlu memindahkannya
+  // dari kiri atas secara manual.
+  const placed = notes.filter(x =>
+    x.id !== note.id && x.x != null && x.y != null
+  );
+
+  if(placed.length){
+    let bottom = 35;
+
+    placed.forEach(x => {
+      const h = window.innerWidth<=800 ? 240 : 280;
+      bottom = Math.max(bottom, Number(x.y) + h);
+    });
+
+    note.x = 30;
+    note.y = bottom + gap;
+  }else{
+    // Note pertama tetap mulai dari posisi kiri atas yang rapi.
+    note.x = 30;
+    note.y = 35;
+  }
+
+  note.rot = note.rot ?? ((Math.random()*5)-2.5);
 }
 function scrollToNote(note){requestAnimationFrame(()=>{const el=board.querySelector(`[data-id="${note.id}"]`);if(el)el.scrollIntoView({behavior:"smooth",block:"center"})})}
 function render(){
