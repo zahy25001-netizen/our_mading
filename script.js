@@ -153,37 +153,62 @@ function ensureBoardHeight(){
 
   board.style.minHeight = `${Math.ceil(needed)}px`;
 }
-function arrangeNewNotePosition(note){
-  // Posisi yang sudah tersimpan jangan diubah.
-  if(note.x!=null&&note.y!=null)return;
+function estimateNoteHeight(note){
+  const width = window.innerWidth <= 500 ? 175 : (window.innerWidth <= 800 ? 190 : 230);
+  const text = String(note.text || "");
+  const charsPerLine = Math.max(12, Math.floor((width - 32) / (window.innerWidth <= 800 ? 8 : 8.5)));
+  const lines = text.split("\n").reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length / charsPerLine)), 0);
+  let h = 92 + lines * (window.innerWidth <= 800 ? 19 : 20);
+  if(note.title) h += 34;
+  if(note.photo || note.photo_path) h += window.innerWidth <= 500 ? 112 : 142;
+  if(note.voice || note.voice_path) h += 48;
+  return Math.max(window.innerWidth <= 800 ? 190 : 220, Math.min(h, 1000));
+}
 
-  const gap = 28;
-  const noteW = window.innerWidth<=500 ? 175 : (window.innerWidth<=800 ? 190 : 230);
-  const estimatedH = window.innerWidth<=800 ? 240 : 280;
+function findSmartPosition(note){
+  const boardWidth = Math.max(260, board.clientWidth || window.innerWidth - 40);
+  const mobile = window.innerWidth <= 500;
+  const noteW = mobile ? 175 : (window.innerWidth <= 800 ? 190 : 230);
+  const gapX = 24, gapY = 28, leftPad = mobile ? 12 : 30, topPad = 35;
+  const maxX = Math.max(leftPad, boardWidth - noteW - leftPad);
+  const cols = Math.max(1, Math.floor((maxX - leftPad) / (noteW + gapX)) + 1);
+  const candidateXs = Array.from({length: cols}, (_,i) => leftPad + i * (noteW + gapX));
+  const h = estimateNoteHeight(note);
 
-  // Kalau sudah ada note, note baru selalu ditempatkan di bawah
-  // note yang paling bawah. Jadi pengguna tidak perlu memindahkannya
-  // dari kiri atas secara manual.
-  const placed = notes.filter(x =>
-    x.id !== note.id && x.x != null && x.y != null
-  );
-
-  if(placed.length){
-    let bottom = 35;
-
-    placed.forEach(x => {
-      const h = window.innerWidth<=800 ? 240 : 280;
-      bottom = Math.max(bottom, Number(x.y) + h);
-    });
-
-    note.x = 30;
-    note.y = bottom + gap;
-  }else{
-    // Note pertama tetap mulai dari posisi kiri atas yang rapi.
-    note.x = 30;
-    note.y = 35;
+  // Gunakan ukuran note yang sedang tampil jika tersedia; untuk note di luar filter,
+  // gunakan perkiraan tinggi dari isinya. Tidak mengubah posisi note yang sudah tersimpan.
+  const occupied = notes.filter(n => n.id !== note.id && n.x != null && n.y != null).map(n => {
+    const el = board.querySelector(`[data-id="${CSS.escape(String(n.id))}"]`);
+    return {
+      x: Number(n.x), y: Number(n.y),
+      w: el ? el.offsetWidth : noteW,
+      h: el ? el.offsetHeight : estimateNoteHeight(n)
+    };
+  });
+  const maxBottom = occupied.reduce((m,r) => Math.max(m, r.y + r.h), topPad);
+  // Mulai dari baris bawah yang mungkin masih punya ruang, lalu turun terus.
+  const startY = Math.max(topPad, maxBottom - Math.max(h, 240));
+  const rowStep = 30;
+  const endY = maxBottom + h + 500;
+  for(let y = startY; y <= endY; y += rowStep){
+    for(const x of candidateXs){
+      const overlaps = occupied.some(r =>
+        x < r.x + r.w + gapX && x + noteW + gapX > r.x &&
+        y < r.y + r.h + gapY && y + h + gapY > r.y
+      );
+      if(!overlaps) return {x, y};
+    }
   }
+  // Fallback aman: tempatkan satu baris di bawah note terendah.
+  return {x:leftPad, y:maxBottom + gapY};
+}
 
+function arrangeNewNotePosition(note){
+  // Jangan pernah mengubah posisi note lama yang sudah tersimpan.
+  if(note.x != null && note.y != null) return;
+  const pos = findSmartPosition(note);
+  note.x = pos.x;
+  note.y = pos.y;
   note.rot = note.rot ?? ((Math.random()*5)-2.5);
 }
 function scrollToNote(note){requestAnimationFrame(()=>{const el=board.querySelector(`[data-id="${note.id}"]`);if(el)el.scrollIntoView({behavior:"smooth",block:"center"})})}
@@ -337,7 +362,8 @@ $("#saveNoteBtn").onclick=async()=>{
     $("#saveNoteBtn").disabled=true; $("#saveNoteBtn").textContent="Menyimpan...";
     if(photoFile){newPhotoPath=await uploadMedia(photoFile,"photos",photoFile.type)} else if(removePhotoFlag)newPhotoPath=null;
     if(voiceBlob){newVoicePath=await uploadMedia(voiceBlob,"voices",voiceBlob.type)} else if(removeVoiceFlag)newVoicePath=null;
-    const payload={room_id:activeRoomId,author,title,text,date:$("#noteDate").value||today(),color:selectedColor,photo_path:newPhotoPath,voice_path:newVoicePath,favorite:old?.favorite||false,x:old?.x??null,y:old?.y??null,rot:old?.rot??((Math.random()*5)-2.5)};
+    const position = (old && old.x != null && old.y != null) ? {x: old.x, y: old.y} : findSmartPosition({title,text,photo:!!(newPhotoPath||photoFile),photo_path:newPhotoPath,voice:!!(voiceBlob||voicePath),voice_path:newVoicePath});
+    const payload={room_id:activeRoomId,author,title,text,date:$("#noteDate").value||today(),color:selectedColor,photo_path:newPhotoPath,voice_path:newVoicePath,favorite:old?.favorite||false,x:old?.x??position.x,y:old?.y??position.y,rot:old?.rot??((Math.random()*5)-2.5)};
     let result;
     if(editingId)result=await sb.from("notes").update(payload).eq("id",editingId).eq("room_id",activeRoomId).select().single();
     else result=await sb.from("notes").insert(payload).select().single();
@@ -395,3 +421,73 @@ async function init(){
   }else openRoomModal();
 }
 init();
+
+
+/* LITTLE CAT PET — visual-only feature; it never reads or writes mading notes. */
+(() => {
+  const pet = document.getElementById("catPet");
+  if(!pet) return;
+  const cat = document.getElementById("petCatBody");
+  const bubble = document.getElementById("petBubble");
+  const outfit = document.getElementById("petOutfit");
+  const accessory = document.getElementById("petAccessory");
+  const nameLabel = document.getElementById("petName");
+  const messages = ["meow~ 🐾", "aku nemenin kamu ya!", "purr purr 💗", "jangan lupa istirahat", "semangat nulis kenangan!", "mau dielus lagi? 🐱"];
+  let moodTimer;
+  let soundCtx;
+  const say = (message) => {
+    bubble.textContent = message;
+    bubble.classList.add("show");
+    clearTimeout(moodTimer);
+    moodTimer = setTimeout(() => bubble.classList.remove("show"), 2400);
+  };
+  const sound = (kind="meow") => {
+    try {
+      soundCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+      if(soundCtx.state === "suspended") soundCtx.resume();
+      const now = soundCtx.currentTime;
+      const osc = soundCtx.createOscillator();
+      const gain = soundCtx.createGain();
+      osc.connect(gain); gain.connect(soundCtx.destination);
+      osc.type = kind === "purr" ? "triangle" : "sine";
+      osc.frequency.setValueAtTime(kind === "purr" ? 95 : 620, now);
+      osc.frequency.exponentialRampToValueAtTime(kind === "purr" ? 125 : 360, now + .18);
+      gain.gain.setValueAtTime(.0001, now);
+      gain.gain.exponentialRampToValueAtTime(kind === "purr" ? .045 : .065, now + .025);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + .22);
+      osc.start(now); osc.stop(now + .23);
+    } catch(e) { /* audio may be unavailable until the first user interaction */ }
+  };
+  const petCat = () => {
+    cat.classList.remove("pet-bounce"); void cat.offsetWidth; cat.classList.add("pet-bounce");
+    say(messages[Math.floor(Math.random()*messages.length)]);
+    sound(Math.random() > .6 ? "purr" : "meow");
+    for(let i=0;i<3;i++){
+      const heart=document.createElement("span"); heart.className="pet-heart"; heart.textContent=["♥","✦","♡"][i];
+      pet.appendChild(heart); setTimeout(()=>heart.remove(),1100);
+    }
+  };
+  pet.querySelector(".pet-cat-hitbox").addEventListener("click", petCat);
+  document.getElementById("petFeed").addEventListener("click", () => {say("nyam nyam! makasih 🐟");sound("purr");cat.classList.add("pet-bounce");});
+  document.getElementById("petPlay").addEventListener("click", () => {say("yuk main bareng! ✨");sound("meow");cat.classList.add("pet-wiggle");setTimeout(()=>cat.classList.remove("pet-wiggle"),900);});
+  document.getElementById("petDress").addEventListener("click", () => {
+    const looks = [
+      {outfit:"", accessory:"🎀", label:"Pita pink"},
+      {outfit:"pet-scarf", accessory:"🧢", label:"Topi lucu"},
+      {outfit:"pet-cape", accessory:"👑", label:"Mahkota"},
+      {outfit:"pet-sweater", accessory:"🌼", label:"Bunga"},
+      {outfit:"pet-overalls", accessory:"🕶️", label:"Kacamata"}
+    ];
+    const next=(Number(pet.dataset.look||0)+1)%looks.length; pet.dataset.look=String(next);
+    outfit.className="pet-outfit "+looks[next].outfit;
+    accessory.textContent=looks[next].accessory;
+    say("outfit baru: "+looks[next].label+" ✨");sound("meow");
+  });
+  document.getElementById("petNameBtn").addEventListener("click", () => {
+    const current=nameLabel.textContent;
+    const name=prompt("Mau panggil kucingnya siapa?", current);
+    if(name && name.trim()) {nameLabel.textContent=name.trim().slice(0,18);say("hai, aku "+name.trim()+"! 🐾");}
+  });
+  // Idle animation is gentle and independent from the corkboard.
+  setInterval(() => { if(!document.hidden && Math.random()>.55) cat.classList.add("pet-blink"); setTimeout(()=>cat.classList.remove("pet-blink"),260); }, 4200);
+})();
