@@ -134,3 +134,51 @@ box-shadow:inset 0 0 45px rgba(42,24,15,.3),0 18px 40px rgba(51,33,23,.18)}
 @keyframes cat-eye-blink{0%,45%,49%,100%{transform:scaleY(1)}47%{transform:scaleY(.12)}}
 @media(max-width:600px){.cat-pet{right:9px;bottom:9px;transform:scale(.86);transform-origin:bottom right}.pet-bubble{max-width:190px}.cat-pet{z-index:35}}
 @media(prefers-reduced-motion:reduce){.pet-bounce,.pet-wiggle,.pet-heart{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+/* CAT PET UPGRADE — fluffier silhouette, markings, wearable clothes and life-like idle motions */
+.cat-pet{width:168px; padding:11px 10px 9px; background:linear-gradient(145deg,rgba(255,253,249,.97),rgba(255,240,232,.94)); border-color:#fff; box-shadow:0 14px 38px rgba(79,48,43,.23),inset 0 1px 0 #fff;}
+.pet-cat-hitbox{width:140px;height:130px; overflow:visible;}
+.pet-cat{left:19px;top:7px;width:105px;height:116px;filter:drop-shadow(0 4px 2px rgba(70,47,37,.12));}
+.cat-head{left:22px;top:14px;width:62px;height:53px;border:1px solid #cbb6a4;background:radial-gradient(ellipse at 35% 25%,#fffefa 0,#f5e9d9 55%,#d7c0ab 100%);box-shadow:inset -5px -4px 0 rgba(177,145,120,.22);}
+.cat-head:before{content:"";position:absolute;left:11px;top:4px;width:13px;height:20px;border-radius:50%;background:rgba(194,165,139,.26);transform:rotate(28deg);}
+.cat-ear{top:5px;width:29px;height:35px;background:linear-gradient(120deg,#f9ecde,#d9c0a9);border-color:#cbb6a4;}
+.cat-ear:after{inset:8px 7px 6px;background:linear-gradient(#e9a0a4,#c97682);}
+.cat-body{left:24px;top:56px;width:56px;height:48px;border-color:#cbb6a4;background:radial-gradient(ellipse at 32% 25%,#fffefa 0,#f4e7d8 60%,#d6bea7 100%);}
+.cat-body:before{content:"";position:absolute;left:15px;top:6px;width:17px;height:29px;border-radius:50%;background:#fff9f0;box-shadow:0 0 0 1px rgba(206,185,164,.18);}
+.cat-paw{top:88px;width:27px;height:19px;background:linear-gradient(135deg,#fffaf1,#e6d3c0);border-color:#cbb6a4;box-shadow:inset 0 -3px 0 rgba(181,147,122,.16);}
+.paw-left{left:19px}.paw-right{right:17px}
+.cat-tail{right:0;top:62px;width:33px;height:38px;border-width:8px;border-color:#d1b69c;border-left-color:transparent;border-bottom-color:transparent;filter:drop-shadow(1px 2px 0 rgba(100,69,49,.12));animation:cat-tail-sway 3.5s ease-in-out infinite;transform-origin:10% 90%;}
+.cat-eye{top:20px;width:7px;height:9px;background:radial-gradient(circle at 35% 25%,#fff 0 12%,#51453d 18% 100%);box-shadow:0 1px 1px #fff8;}
+.eye-left{left:13px}.eye-right{right:13px}
+.cat-nose{left:28px;top:29px;width:6px;height:5px;background:#d7808a;}
+.cat-mouth{left:25px;top:33px;width:12px;height:6px;border-bottom:1.5px solid #8c6b62;}
+.cat-whisker{top:31px;width:17px;background:#bba18d;}
+.pet-outfit{left:27px;top:62px;width:51px;height:31px;border-radius:17px 17px 13px 13px;z-index:5;box-shadow:inset 0 2px 0 #ffffff55,0 2px 2px #65433322;}
+.pet-outfit:before{content:"";position:absolute;left:-5px;top:5px;width:12px;height:17px;border-radius:8px 3px 8px 8px;background:inherit;transform:rotate(20deg);}
+.pet-outfit:after{content:"";position:absolute;right:-5px;top:5px;width:12px;height:17px;border-radius:3px 8px 8px 8px;background:inherit;transform:rotate(-20deg);}
+.pet-outfit.pet-scarf{left:26px;top:61px;width:54px;height:35px;border-radius:13px 13px 16px 16px;background:linear-gradient(135deg,#8fb8dc,#4f82b1);border:1px solid #4777a5;border-bottom:5px solid #d4e9f8;}
+.pet-outfit.pet-scarf:before{left:17px;top:25px;width:12px;height:17px;background:#4f82b1;transform:rotate(-8deg);border-radius:2px 2px 7px 7px;}
+.pet-outfit.pet-scarf:after{display:none}
+.pet-outfit.pet-cape{left:24px;top:62px;width:57px;height:35px;border-radius:14px 14px 16px 16px;background:linear-gradient(135deg,#b89add,#8264b0);border:2px solid #d6c3eb;}
+.pet-outfit.pet-sweater{left:25px;top:61px;width:55px;height:36px;border-radius:16px 16px 13px 13px;background:repeating-linear-gradient(0deg,#a7bd9b 0 6px,#d5e2c9 6px 8px);border-bottom:5px solid #e3e9ce;}
+.pet-outfit.pet-overalls{left:29px;top:65px;width:48px;height:31px;border-radius:9px 9px 12px 12px;background:linear-gradient(90deg,#7198b7,#a9c7dd 50%,#7198b7);border-bottom:5px solid #d1e0ed;}
+.pet-outfit.pet-heartshirt{left:27px;top:62px;width:52px;height:33px;background:linear-gradient(135deg,#f3a1b7,#dc648a);border:1px solid #c94e75;border-radius:13px 13px 15px 15px;}
+.pet-outfit.pet-heartshirt{background-image:radial-gradient(circle at 50% 15px,#fff 0 3px,transparent 3.5px),linear-gradient(135deg,#f3a1b7,#dc648a);}
+.pet-outfit.pet-raincoat{left:25px;top:61px;width:55px;height:35px;background:linear-gradient(135deg,#f4d76d,#d6a82f);border:1px solid #bd9024;border-bottom:5px solid #fff0a6;border-radius:15px 15px 12px 12px;}
+.pet-outfit.pet-raincoat:after{right:18px;top:7px;width:5px;height:5px;border-radius:50%;background:#fff6c7;box-shadow:0 9px 0 #fff6c7;}
+.pet-accessory{top:0;left:50px;font-size:24px;filter:drop-shadow(0 2px 2px #0002);}
+.pet-controls button{width:34px;height:32px;box-shadow:0 2px 0 #ead9cd;font-size:17px;}
+.pet-sleep{animation:cat-doze 2.7s ease-in-out infinite!important;transform-origin:50% 85%;}
+.pet-sleep .cat-eye{height:2px!important;top:24px;transform:scaleY(.2);}
+.pet-sleep .cat-head{transform:rotate(8deg) translate(2px,3px);}
+.pet-sleep:after{content:"z z";position:absolute;right:-3px;top:0;color:#a58dc5;font:700 12px Georgia,serif;letter-spacing:2px;animation:zzz-float 2s ease-in-out infinite;}
+.pet-lick .cat-mouth{height:11px;border-bottom:0;}
+.pet-lick .cat-mouth:after{content:"";position:absolute;left:4px;top:3px;width:4px;height:8px;background:#e78e9c;border-radius:0 0 5px 5px;animation:cat-lick-tongue .24s ease-in-out infinite alternate;}
+.pet-lick .cat-head{animation:cat-groom .45s ease-in-out 2 alternate;}
+.pet-bounce .cat-tail{animation-duration:.3s;}
+@keyframes cat-tail-sway{0%,100%{transform:rotate(24deg)}50%{transform:rotate(4deg)}}
+@keyframes cat-doze{0%,100%{transform:translateY(1px) rotate(1deg) scale(.99)}50%{transform:translateY(4px) rotate(3deg) scale(.97)}}
+@keyframes zzz-float{0%,100%{opacity:.25;transform:translate(0,4px)}50%{opacity:1;transform:translate(5px,-7px)}}
+@keyframes cat-lick-tongue{from{transform:scaleY(.5)}to{transform:scaleY(1.1)}}
+@keyframes cat-groom{from{transform:rotate(0)}to{transform:rotate(9deg) translateY(2px)}}
+@media(max-width:600px){.cat-pet{right:8px;bottom:8px;transform:scale(.84);transform-origin:bottom right}.pet-cat-hitbox{height:126px}}
