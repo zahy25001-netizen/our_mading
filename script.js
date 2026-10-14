@@ -479,7 +479,7 @@ init();
   render();
   pet.querySelector(".pet-cat-hitbox").addEventListener("click", petCat);
   document.getElementById("petFeed").addEventListener("click", () => { animate("pet-lick",1000); say("nyam nyam... makasih ya 🐟"); sound("purr"); });
-  document.getElementById("petPlay").addEventListener("click", () => { animate("pet-wiggle",850); say("tangkap benangnya! 🧶"); sound("meow"); hearts(); });
+  document.getElementById("petPlay").addEventListener("click", () => { animate("pet-wiggle",850); say("Asyikkkk main! 🧶"); sound("meow"); hearts(); });
   document.getElementById("petDress").addEventListener("click", () => { state.look=(state.look+1)%looks.length; save(); render(); animate("pet-bounce",550); say("outfit baru: "+looks[state.look].label+" ✨"); sound("meow"); });
   document.getElementById("petNameBtn").addEventListener("click", () => {
     const entered=prompt("Mau panggil kucingnya siapa?", state.name);
