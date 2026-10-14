@@ -423,71 +423,77 @@ async function init(){
 init();
 
 
-/* LITTLE CAT PET — visual-only feature; it never reads or writes mading notes. */
+/* LITTLE CAT PET — saved name + outfit, expressive idle animations. */
 (() => {
   const pet = document.getElementById("catPet");
-  if(!pet) return;
+  if (!pet) return;
   const cat = document.getElementById("petCatBody");
   const bubble = document.getElementById("petBubble");
   const outfit = document.getElementById("petOutfit");
   const accessory = document.getElementById("petAccessory");
   const nameLabel = document.getElementById("petName");
+  const STORE_KEY = "mading-cat-pet-v2";
+  const looks = [
+    { outfit:"", accessory:"🎀", label:"Pita pink" },
+    { outfit:"pet-scarf", accessory:"🧢", label:"Hoodie biru" },
+    { outfit:"pet-cape", accessory:"👑", label:"Jubah kerajaan" },
+    { outfit:"pet-sweater", accessory:"🌼", label:"Sweater bunga" },
+    { outfit:"pet-overalls", accessory:"🕶️", label:"Overall denim" },
+    { outfit:"pet-heartshirt", accessory:"💕", label:"Kaos hati" },
+    { outfit:"pet-raincoat", accessory:"☔", label:"Jas hujan" }
+  ];
   const messages = ["meow~ 🐾", "aku nemenin kamu ya!", "purr purr 💗", "jangan lupa istirahat", "semangat nulis kenangan!", "mau dielus lagi? 🐱"];
-  let moodTimer;
-  let soundCtx;
+  let moodTimer, idleTimer, soundCtx;
+  let state = { name: "Mochi", look: 0 };
+  try { const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); if(saved && typeof saved === "object") state = {...state, ...saved}; } catch(e) {}
+  state.look = Math.max(0, Math.min(looks.length - 1, Number(state.look) || 0));
+  const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e) { console.warn("Pet tidak dapat disimpan di browser ini", e); } };
   const say = (message) => {
-    bubble.textContent = message;
-    bubble.classList.add("show");
-    clearTimeout(moodTimer);
-    moodTimer = setTimeout(() => bubble.classList.remove("show"), 2400);
+    bubble.textContent = message; bubble.classList.add("show"); clearTimeout(moodTimer);
+    moodTimer = setTimeout(() => bubble.classList.remove("show"), 2500);
+  };
+  const animate = (name, duration=900) => {
+    cat.classList.remove("pet-bounce", "pet-wiggle", "pet-lick", "pet-sleep");
+    void cat.offsetWidth; cat.classList.add(name);
+    if(name !== "pet-sleep") setTimeout(() => cat.classList.remove(name), duration);
   };
   const sound = (kind="meow") => {
     try {
       soundCtx ||= new (window.AudioContext || window.webkitAudioContext)();
       if(soundCtx.state === "suspended") soundCtx.resume();
-      const now = soundCtx.currentTime;
-      const osc = soundCtx.createOscillator();
-      const gain = soundCtx.createGain();
-      osc.connect(gain); gain.connect(soundCtx.destination);
-      osc.type = kind === "purr" ? "triangle" : "sine";
+      const now=soundCtx.currentTime, osc=soundCtx.createOscillator(), gain=soundCtx.createGain();
+      osc.connect(gain); gain.connect(soundCtx.destination); osc.type=kind === "purr" ? "triangle" : "sine";
       osc.frequency.setValueAtTime(kind === "purr" ? 95 : 620, now);
-      osc.frequency.exponentialRampToValueAtTime(kind === "purr" ? 125 : 360, now + .18);
-      gain.gain.setValueAtTime(.0001, now);
-      gain.gain.exponentialRampToValueAtTime(kind === "purr" ? .045 : .065, now + .025);
-      gain.gain.exponentialRampToValueAtTime(.0001, now + .22);
-      osc.start(now); osc.stop(now + .23);
-    } catch(e) { /* audio may be unavailable until the first user interaction */ }
+      osc.frequency.exponentialRampToValueAtTime(kind === "purr" ? 125 : 360, now+.18);
+      gain.gain.setValueAtTime(.0001,now); gain.gain.exponentialRampToValueAtTime(kind === "purr" ? .035 : .05,now+.025);
+      gain.gain.exponentialRampToValueAtTime(.0001,now+.22); osc.start(now); osc.stop(now+.23);
+    } catch(e) {}
   };
-  const petCat = () => {
-    cat.classList.remove("pet-bounce"); void cat.offsetWidth; cat.classList.add("pet-bounce");
-    say(messages[Math.floor(Math.random()*messages.length)]);
-    sound(Math.random() > .6 ? "purr" : "meow");
-    for(let i=0;i<3;i++){
-      const heart=document.createElement("span"); heart.className="pet-heart"; heart.textContent=["♥","✦","♡"][i];
-      pet.appendChild(heart); setTimeout(()=>heart.remove(),1100);
-    }
+  const render = () => {
+    nameLabel.textContent = state.name;
+    const look=looks[state.look]; outfit.className="pet-outfit"+(look.outfit ? " "+look.outfit : "");
+    accessory.textContent=look.accessory; pet.dataset.look=String(state.look);
   };
+  const hearts = () => { for(let i=0;i<3;i++){ const h=document.createElement("span"); h.className="pet-heart"; h.textContent=["♥","✦","♡"][i]; pet.appendChild(h); setTimeout(()=>h.remove(),1100); } };
+  const petCat = () => { animate("pet-bounce",550); say(["meowww! 💗","enakkk dielus","purrrr...","sayang kamu 🐾"][Math.floor(Math.random()*4)]); sound(Math.random()>.55?"purr":"meow"); hearts(); };
+  render();
   pet.querySelector(".pet-cat-hitbox").addEventListener("click", petCat);
-  document.getElementById("petFeed").addEventListener("click", () => {say("nyam nyam! makasih 🐟");sound("purr");cat.classList.add("pet-bounce");});
-  document.getElementById("petPlay").addEventListener("click", () => {say("yuk main bareng! ✨");sound("meow");cat.classList.add("pet-wiggle");setTimeout(()=>cat.classList.remove("pet-wiggle"),900);});
-  document.getElementById("petDress").addEventListener("click", () => {
-    const looks = [
-      {outfit:"", accessory:"🎀", label:"Pita pink"},
-      {outfit:"pet-scarf", accessory:"🧢", label:"Topi lucu"},
-      {outfit:"pet-cape", accessory:"👑", label:"Mahkota"},
-      {outfit:"pet-sweater", accessory:"🌼", label:"Bunga"},
-      {outfit:"pet-overalls", accessory:"🕶️", label:"Kacamata"}
-    ];
-    const next=(Number(pet.dataset.look||0)+1)%looks.length; pet.dataset.look=String(next);
-    outfit.className="pet-outfit "+looks[next].outfit;
-    accessory.textContent=looks[next].accessory;
-    say("outfit baru: "+looks[next].label+" ✨");sound("meow");
-  });
+  document.getElementById("petFeed").addEventListener("click", () => { animate("pet-lick",1000); say("nyam nyam... makasih ya 🐟"); sound("purr"); });
+  document.getElementById("petPlay").addEventListener("click", () => { animate("pet-wiggle",850); say("tangkap benangnya! 🧶"); sound("meow"); hearts(); });
+  document.getElementById("petDress").addEventListener("click", () => { state.look=(state.look+1)%looks.length; save(); render(); animate("pet-bounce",550); say("outfit baru: "+looks[state.look].label+" ✨"); sound("meow"); });
   document.getElementById("petNameBtn").addEventListener("click", () => {
-    const current=nameLabel.textContent;
-    const name=prompt("Mau panggil kucingnya siapa?", current);
-    if(name && name.trim()) {nameLabel.textContent=name.trim().slice(0,18);say("hai, aku "+name.trim()+"! 🐾");}
+    const entered=prompt("Mau panggil kucingnya siapa?", state.name);
+    if(entered !== null && entered.trim()) { state.name=entered.trim().replace(/\s+/g," ").slice(0,18); save(); render(); say("hai, aku "+state.name+"! 🐾"); sound("meow"); }
   });
-  // Idle animation is gentle and independent from the corkboard.
-  setInterval(() => { if(!document.hidden && Math.random()>.55) cat.classList.add("pet-blink"); setTimeout(()=>cat.classList.remove("pet-blink"),260); }, 4200);
+  // Natural idle behavior: blink, groom, and curl up for a nap. Any interaction wakes the cat.
+  const wake = () => { cat.classList.remove("pet-sleep"); };
+  pet.querySelector(".pet-cat-hitbox").addEventListener("pointerdown", wake);
+  idleTimer=setInterval(() => {
+    if(document.hidden || cat.matches(".pet-bounce,.pet-wiggle,.pet-lick")) return;
+    const roll=Math.random();
+    if(roll<.18) { cat.classList.add("pet-blink"); setTimeout(()=>cat.classList.remove("pet-blink"),300); }
+    else if(roll<.36) { animate("pet-lick",1050); }
+    else if(roll<.48) { cat.classList.add("pet-sleep"); say("zzz... mimpi indah 💤"); }
+  }, 6500);
+  window.addEventListener("beforeunload", save);
 })();
