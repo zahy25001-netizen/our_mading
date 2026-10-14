@@ -94,6 +94,23 @@
     </section>
   </main>
 
+  <!-- Little cat companion: floating layer, independent from the mading and its saved notes -->
+  <aside class="cat-pet" id="catPet" aria-label="Pet kucing interaktif">
+    <div class="pet-bubble" id="petBubble" aria-live="polite">meow~ 🐾</div>
+    <div class="pet-name-row"><span id="petName">Mochi</span><button id="petNameBtn" title="Ganti nama kucing" aria-label="Ganti nama kucing">✎</button></div>
+    <button class="pet-cat-hitbox" type="button" aria-label="Elus kucing">
+      <span class="pet-accessory" id="petAccessory">🎀</span>
+      <span class="pet-cat" id="petCatBody" aria-hidden="true">
+        <span class="cat-ear cat-ear-left"></span><span class="cat-ear cat-ear-right"></span>
+        <span class="cat-head"><i class="cat-eye eye-left"></i><i class="cat-eye eye-right"></i><i class="cat-nose"></i><i class="cat-mouth"></i><i class="cat-whisker whisker-left"></i><i class="cat-whisker whisker-right"></i></span>
+        <span class="cat-body"></span><span class="cat-paw paw-left"></span><span class="cat-paw paw-right"></span><span class="cat-tail"></span>
+        <span class="pet-outfit" id="petOutfit"></span>
+      </span>
+    </button>
+    <div class="pet-controls"><button id="petFeed" title="Beri camilan">🐟</button><button id="petPlay" title="Ajak bermain">🧶</button><button id="petDress" title="Ganti aksesori">🎩</button></div>
+    <small class="pet-hint">elus aku ♡</small>
+  </aside>
+
   <div class="modal-backdrop hidden" id="editorModal">
     <div class="editor-modal">
       <button class="close-btn" id="closeEditor">×</button>
