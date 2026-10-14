@@ -96,3 +96,41 @@ box-shadow:inset 0 0 45px rgba(42,24,15,.3),0 18px 40px rgba(51,33,23,.18)}
   .sticky-note{touch-action:pan-y;will-change:left,top}
   .note-tools{opacity:1}
 }
+
+/* SMART NOTE PLACEMENT: keep the board as a growing canvas without covering notes */
+.board{overflow:visible;}
+.sticky-note{box-sizing:border-box;}
+
+/* MOCHI — floating cat companion; separate from the notes and Supabase data */
+.cat-pet{position:fixed;right:18px;bottom:14px;z-index:35;width:150px;padding:10px 10px 8px;border:1px solid rgba(255,255,255,.75);border-radius:24px;background:rgba(255,250,242,.91);box-shadow:0 12px 35px rgba(57,35,25,.2);backdrop-filter:blur(12px);text-align:center;color:#45342e;isolation:isolate}
+.pet-name-row{display:flex;justify-content:center;align-items:center;gap:5px;font:600 13px "Playfair Display",serif;margin-bottom:1px}
+.pet-name-row button{border:0;background:transparent;color:#986b60;padding:2px 4px;font-size:11px;cursor:pointer}
+.pet-bubble{position:absolute;left:50%;bottom:calc(100% + 9px);transform:translate(-50%,5px) scale(.94);opacity:0;pointer-events:none;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;padding:8px 12px;border-radius:14px 14px 14px 4px;background:#fff;color:#77504a;font:500 11px "DM Mono",monospace;box-shadow:0 5px 18px #0002;transition:opacity .18s,transform .18s}
+.pet-bubble.show{opacity:1;transform:translate(-50%,0) scale(1)}
+.pet-cat-hitbox{position:relative;display:block;width:126px;height:112px;margin:0 auto;padding:0;border:0;background:transparent;cursor:pointer;touch-action:manipulation}
+.pet-cat{position:absolute;left:15px;top:2px;width:98px;height:106px;display:block;transform-origin:50% 85%;}
+.cat-head{position:absolute;z-index:3;left:21px;top:15px;width:58px;height:48px;border-radius:47% 47% 45% 45%;background:linear-gradient(145deg,#fffdf8,#e6d8c9);border:1px solid #d1bca9;box-shadow:inset -4px -3px 0 #d8c5b4}
+.cat-ear{position:absolute;z-index:2;top:8px;width:27px;height:32px;background:#eadbca;border:1px solid #d1bca9;clip-path:polygon(50% 0,100% 100%,0 100%);border-radius:7px}
+.cat-ear:after{content:"";position:absolute;inset:8px 7px 5px;background:#d98e91;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.cat-ear-left{left:20px;transform:rotate(-13deg)}.cat-ear-right{right:20px;transform:rotate(13deg)}
+.cat-eye{position:absolute;top:19px;width:5px;height:7px;background:#493b35;border-radius:50%;animation:cat-eye-blink 5s infinite}
+.eye-left{left:14px}.eye-right{right:14px}
+.cat-nose{position:absolute;left:27px;top:27px;width:5px;height:4px;background:#d98791;clip-path:polygon(50% 100%,0 0,100% 0)}
+.cat-mouth{position:absolute;left:24px;top:31px;width:10px;height:5px;border-bottom:1.5px solid #8c6b62;border-radius:50%}
+.cat-whisker{position:absolute;top:29px;width:15px;height:1px;background:#b39b88}.whisker-left{right:45px;transform:rotate(10deg)}.whisker-right{left:45px;transform:rotate(-10deg)}
+.cat-body{position:absolute;z-index:1;left:26px;top:52px;width:50px;height:44px;border-radius:48% 48% 42% 42%;background:linear-gradient(145deg,#fffdf8,#e5d5c5);border:1px solid #d1bca9}
+.cat-paw{position:absolute;z-index:4;top:79px;width:25px;height:18px;border-radius:12px;background:#f8eee2;border:1px solid #d1bca9}.paw-left{left:21px;transform:rotate(-12deg)}.paw-right{right:19px;transform:rotate(12deg)}
+.cat-tail{position:absolute;z-index:0;right:4px;top:58px;width:29px;height:35px;border:7px solid #d5bda8;border-left-color:transparent;border-bottom-color:transparent;border-radius:50%;transform:rotate(26deg)}
+.pet-accessory{position:absolute;z-index:8;top:2px;left:48px;font-size:22px;filter:drop-shadow(0 2px 1px #0002);pointer-events:none;transition:transform .2s}
+.pet-outfit{position:absolute;z-index:5;left:30px;top:60px;width:42px;height:26px;border-radius:12px 12px 15px 15px;pointer-events:none}
+.pet-outfit.pet-scarf{background:#b96f78;border-bottom:5px solid #e4a3a4}.pet-outfit.pet-cape{background:#9875b2;border:2px solid #d6c3eb}.pet-outfit.pet-sweater{background:#a7bd9b;border-bottom:4px solid #e3e9ce}.pet-outfit.pet-overalls{background:#8caac2;border-bottom:5px solid #d1e0ed}
+.pet-controls{display:flex;justify-content:center;gap:8px;margin-top:0}.pet-controls button{width:32px;height:30px;border:1px solid #e9d8cc;border-radius:11px;background:#fffaf5;cursor:pointer;font-size:16px;transition:transform .15s,background .15s}.pet-controls button:hover{transform:translateY(-2px);background:#fff}
+.pet-hint{display:block;margin-top:5px;color:#a38a7d;font:8px "DM Mono",monospace;letter-spacing:.06em}
+.pet-bounce{animation:pet-bounce .48s ease}.pet-wiggle{animation:pet-wiggle .7s ease}.pet-blink .cat-eye{height:2px;transform:translateY(3px)}
+.pet-heart{position:absolute;z-index:10;left:45%;top:20%;color:#ce8186;pointer-events:none;font-size:15px;animation:pet-heart-float 1s ease-out forwards}
+@keyframes pet-bounce{0%,100%{transform:translateY(0) rotate(0)}35%{transform:translateY(-12px) rotate(-5deg)}70%{transform:translateY(-4px) rotate(5deg)}}
+@keyframes pet-wiggle{0%,100%{transform:rotate(0)}20%{transform:rotate(-9deg)}40%{transform:rotate(9deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(5deg)}}
+@keyframes pet-heart-float{to{opacity:0;transform:translate(15px,-45px) scale(1.3)}}
+@keyframes cat-eye-blink{0%,45%,49%,100%{transform:scaleY(1)}47%{transform:scaleY(.12)}}
+@media(max-width:600px){.cat-pet{right:9px;bottom:9px;transform:scale(.86);transform-origin:bottom right}.pet-bubble{max-width:190px}.cat-pet{z-index:35}}
+@media(prefers-reduced-motion:reduce){.pet-bounce,.pet-wiggle,.pet-heart{animation-duration:.01ms!important;animation-iteration-count:1!important}}
