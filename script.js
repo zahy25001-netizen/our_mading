@@ -390,8 +390,8 @@ async function joinRoom(){
   if(!sb)return;const code=$("#joinRoomCode").value.trim().toUpperCase(),author=$("#joinRoomAuthor").value.trim()||"Aku";if(!code){toast("Masukkan kode room.");return}
   try{const {data,error}=await sb.rpc("join_room",{p_code:code,p_author_name:author});if(error)throw error;activateRoom(data,author);closeRoomModal();toast("Berhasil masuk ke mading ♡")}catch(e){console.error(e);toast(`Gagal gabung: ${e.message||"kode salah"}`)}
 }
-function activateRoom(room,author){activeRoomId=room.id;authorName=author;roomName=room.name;localStorage.setItem("mading-active-room",room.id);localStorage.setItem("mading-active-code",room.code);localStorage.setItem("mading-author",author);localStorage.setItem("mading-room-name",room.name);updateRoomUI();subscribeRoom();loadNotes()}
-async function leaveRoom(){if(realtimeChannel&&sb){await sb.removeChannel(realtimeChannel);realtimeChannel=null}activeRoomId=null;notes=[];localStorage.removeItem("mading-active-room");localStorage.removeItem("mading-active-code");localStorage.removeItem("mading-room-name");updateRoomUI();render();closeRoomModal();toast("Kamu keluar dari room di perangkat ini.")}
+function activateRoom(room,author){activeRoomId=room.id;authorName=author;roomName=room.name;localStorage.setItem("mading-active-room",room.id);localStorage.setItem("mading-active-code",room.code);localStorage.setItem("mading-author",author);localStorage.setItem("mading-room-name",room.name);updateRoomUI();subscribeRoom();loadNotes();if(window.MadingPetSyncRoom)window.MadingPetSyncRoom(room.id)}
+async function leaveRoom(){if(realtimeChannel&&sb){await sb.removeChannel(realtimeChannel);realtimeChannel=null}if(window.MadingPetLeaveRoom)await window.MadingPetLeaveRoom();activeRoomId=null;notes=[];localStorage.removeItem("mading-active-room");localStorage.removeItem("mading-active-code");localStorage.removeItem("mading-room-name");updateRoomUI();render();closeRoomModal();toast("Kamu keluar dari room di perangkat ini.")}
 function openRoomModal(){if(!sb){toast("Isi supabase-config.js dulu sebelum membuat room.");return}$("#roomModal").classList.remove("hidden");$("#newRoomAuthor").value=authorName;$("#joinRoomAuthor").value=authorName;updateRoomUI()}
 function closeRoomModal(){$("#roomModal").classList.add("hidden")}
 
@@ -416,14 +416,14 @@ async function init(){
   if(!isConfigured){toast("Supabase belum dikonfigurasi. Isi supabase-config.js dulu.");openRoomModal();return}
   const ok=await ensureAuth();if(!ok)return;
   if(activeRoomId){
-    try{const {data,error}=await sb.from("rooms").select("id,code,name").eq("id",activeRoomId).single();if(error)throw error;roomName=data.name;localStorage.setItem("mading-active-code",data.code);updateRoomUI();await subscribeRoom();await loadNotes();}
+    try{const {data,error}=await sb.from("rooms").select("id,code,name").eq("id",activeRoomId).single();if(error)throw error;roomName=data.name;localStorage.setItem("mading-active-code",data.code);updateRoomUI();await subscribeRoom();await loadNotes();if(window.MadingPetSyncRoom)await window.MadingPetSyncRoom(activeRoomId);}
     catch(e){console.warn(e);activeRoomId=null;localStorage.removeItem("mading-active-room");updateRoomUI();openRoomModal()}
   }else openRoomModal();
 }
 init();
 
 
-/* LITTLE CAT PET — saved name + outfit, expressive idle animations. */
+/* LITTLE CAT PET — room-scoped Supabase sync for name + outfit. */
 (() => {
   const pet = document.getElementById("catPet");
   if (!pet) return;
@@ -443,57 +443,60 @@ init();
     { outfit:"pet-raincoat", accessory:"☔", label:"Jas hujan" }
   ];
   const messages = ["meow~ 🐾", "aku nemenin kamu ya!", "purr purr 💗", "jangan lupa istirahat", "semangat nulis kenangan!", "mau dielus lagi? 🐱"];
-  let moodTimer, idleTimer, soundCtx;
+  let moodTimer, idleTimer, soundCtx, petChannel = null, saveTimer = null, cloudRoomId = null, applyingCloud = false;
   let state = { name: "Mochi", look: 0 };
   try { const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); if(saved && typeof saved === "object") state = {...state, ...saved}; } catch(e) {}
+  state.name = String(state.name || "Mochi").trim().slice(0,18) || "Mochi";
   state.look = Math.max(0, Math.min(looks.length - 1, Number(state.look) || 0));
-  const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e) { console.warn("Pet tidak dapat disimpan di browser ini", e); } };
-  const say = (message) => {
-    bubble.textContent = message; bubble.classList.add("show"); clearTimeout(moodTimer);
-    moodTimer = setTimeout(() => bubble.classList.remove("show"), 2500);
-  };
-  const animate = (name, duration=900) => {
-    cat.classList.remove("pet-bounce", "pet-wiggle", "pet-lick", "pet-sleep");
-    void cat.offsetWidth; cat.classList.add(name);
-    if(name !== "pet-sleep") setTimeout(() => cat.classList.remove(name), duration);
-  };
-  const sound = (kind="meow") => {
-    try {
-      soundCtx ||= new (window.AudioContext || window.webkitAudioContext)();
-      if(soundCtx.state === "suspended") soundCtx.resume();
-      const now=soundCtx.currentTime, osc=soundCtx.createOscillator(), gain=soundCtx.createGain();
-      osc.connect(gain); gain.connect(soundCtx.destination); osc.type=kind === "purr" ? "triangle" : "sine";
-      osc.frequency.setValueAtTime(kind === "purr" ? 95 : 620, now);
-      osc.frequency.exponentialRampToValueAtTime(kind === "purr" ? 125 : 360, now+.18);
-      gain.gain.setValueAtTime(.0001,now); gain.gain.exponentialRampToValueAtTime(kind === "purr" ? .035 : .05,now+.025);
-      gain.gain.exponentialRampToValueAtTime(.0001,now+.22); osc.start(now); osc.stop(now+.23);
-    } catch(e) {}
-  };
-  const render = () => {
-    nameLabel.textContent = state.name;
-    const look=looks[state.look]; outfit.className="pet-outfit"+(look.outfit ? " "+look.outfit : "");
-    accessory.textContent=look.accessory; pet.dataset.look=String(state.look);
-  };
+  const cache = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e) {} };
+  const say = (message) => { bubble.textContent = message; bubble.classList.add("show"); clearTimeout(moodTimer); moodTimer = setTimeout(() => bubble.classList.remove("show"), 2500); };
+  const animate = (name, duration=900) => { cat.classList.remove("pet-bounce", "pet-wiggle", "pet-lick", "pet-sleep"); void cat.offsetWidth; cat.classList.add(name); if(name !== "pet-sleep") setTimeout(() => cat.classList.remove(name), duration); };
+  const sound = (kind="meow") => { try { soundCtx ||= new (window.AudioContext || window.webkitAudioContext)(); if(soundCtx.state === "suspended") soundCtx.resume(); const now=soundCtx.currentTime, osc=soundCtx.createOscillator(), gain=soundCtx.createGain(); osc.connect(gain); gain.connect(soundCtx.destination); osc.type=kind === "purr" ? "triangle" : "sine"; osc.frequency.setValueAtTime(kind === "purr" ? 95 : 620, now); osc.frequency.exponentialRampToValueAtTime(kind === "purr" ? 125 : 360, now+.18); gain.gain.setValueAtTime(.0001,now); gain.gain.exponentialRampToValueAtTime(kind === "purr" ? .035 : .05,now+.025); gain.gain.exponentialRampToValueAtTime(.0001,now+.22); osc.start(now); osc.stop(now+.23); } catch(e) {} };
+  const render = () => { nameLabel.textContent = state.name; const look=looks[state.look]; outfit.className="pet-outfit"+(look.outfit ? " "+look.outfit : ""); accessory.textContent=look.accessory; pet.dataset.look=String(state.look); };
   const hearts = () => { for(let i=0;i<3;i++){ const h=document.createElement("span"); h.className="pet-heart"; h.textContent=["♥","✦","♡"][i]; pet.appendChild(h); setTimeout(()=>h.remove(),1100); } };
   const petCat = () => { animate("pet-bounce",550); say(["meowww! 💗","enakkk dielus","purrrr...","sayang kamu 🐾"][Math.floor(Math.random()*4)]); sound(Math.random()>.55?"purr":"meow"); hearts(); };
+  function scheduleCloudSave(){
+    cache(); if(applyingCloud || !window.supabase || !window.MADING_SUPABASE_URL || !window.MADING_SUPABASE_ANON_KEY || !cloudRoomId) return;
+    clearTimeout(saveTimer); saveTimer=setTimeout(async()=>{
+      try {
+        const client=window.supabase.createClient(window.MADING_SUPABASE_URL,window.MADING_SUPABASE_ANON_KEY);
+        const {data:{session}}=await client.auth.getSession(); if(!session) throw new Error("Belum login ke Supabase.");
+        const payload={room_id:cloudRoomId,pet_name:state.name,outfit_index:state.look,updated_at:new Date().toISOString()};
+        const {error}=await client.from("pet_profiles").upsert(payload,{onConflict:"room_id"}); if(error) throw error;
+      } catch(e){ console.warn("Sinkronisasi pet gagal:",e.message); say("Belum tersinkron — cek koneksi pet ☁️"); }
+    },350);
+  }
+  async function applyCloudRow(row){
+    if(!row) return; applyingCloud=true;
+    state.name=String(row.pet_name || "Mochi").trim().slice(0,18)||"Mochi";
+    state.look=Math.max(0,Math.min(looks.length-1,Number(row.outfit_index)||0)); cache(); render(); applyingCloud=false;
+  }
+  async function syncRoom(roomId){
+    if(petChannel && window.__madingPetSyncClient){try{await window.__madingPetSyncClient.removeChannel(petChannel)}catch(e){}}
+    petChannel=null; cloudRoomId=roomId||null; if(!cloudRoomId) return;
+    if(!window.supabase || !window.MADING_SUPABASE_URL || !window.MADING_SUPABASE_ANON_KEY){console.warn("Supabase config tidak tersedia untuk sinkronisasi pet");return;}
+    const client=window.supabase.createClient(window.MADING_SUPABASE_URL,window.MADING_SUPABASE_ANON_KEY);
+    try {
+      const {data:{session}}=await client.auth.getSession(); if(!session) throw new Error("Belum login");
+      let {data,error}=await client.from("pet_profiles").select("room_id,pet_name,outfit_index,updated_at").eq("room_id",cloudRoomId).maybeSingle();
+      if(error) throw error;
+      if(data){await applyCloudRow(data)} else {
+        const {error:insertError}=await client.from("pet_profiles").insert({room_id:cloudRoomId,pet_name:state.name,outfit_index:state.look});
+        if(insertError && insertError.code!=="23505") throw insertError;
+        const retry=await client.from("pet_profiles").select("room_id,pet_name,outfit_index,updated_at").eq("room_id",cloudRoomId).single(); if(retry.error) throw retry.error; await applyCloudRow(retry.data);
+      }
+      petChannel=client.channel("pet-profile-"+cloudRoomId).on("postgres_changes",{event:"*",schema:"public",table:"pet_profiles",filter:"room_id=eq."+cloudRoomId},payload=>{if(payload.new) applyCloudRow(payload.new)}).subscribe(status=>{if(status==="CHANNEL_ERROR")console.warn("Pet realtime channel error")});
+      window.__madingPetSyncClient=client;
+    } catch(e){ console.error("Gagal memuat profil pet dari Supabase:",e); say("Pet belum tersambung ke cloud ☁️"); }
+  }
+  async function leaveRoom(){ if(petChannel && window.__madingPetSyncClient){try{await window.__madingPetSyncClient.removeChannel(petChannel)}catch(e){}} petChannel=null; cloudRoomId=null; }
+  window.MadingPetSyncRoom=syncRoom; window.MadingPetLeaveRoom=leaveRoom;
   render();
   pet.querySelector(".pet-cat-hitbox").addEventListener("click", petCat);
   document.getElementById("petFeed").addEventListener("click", () => { animate("pet-lick",1000); say("nyam nyam... makasih ya 🐟"); sound("purr"); });
   document.getElementById("petPlay").addEventListener("click", () => { animate("pet-wiggle",850); say("tangkap benangnya! 🧶"); sound("meow"); hearts(); });
-  document.getElementById("petDress").addEventListener("click", () => { state.look=(state.look+1)%looks.length; save(); render(); animate("pet-bounce",550); say("outfit baru: "+looks[state.look].label+" ✨"); sound("meow"); });
-  document.getElementById("petNameBtn").addEventListener("click", () => {
-    const entered=prompt("Mau panggil kucingnya siapa?", state.name);
-    if(entered !== null && entered.trim()) { state.name=entered.trim().replace(/\s+/g," ").slice(0,18); save(); render(); say("hai, aku "+state.name+"! 🐾"); sound("meow"); }
-  });
-  // Natural idle behavior: blink, groom, and curl up for a nap. Any interaction wakes the cat.
-  const wake = () => { cat.classList.remove("pet-sleep"); };
-  pet.querySelector(".pet-cat-hitbox").addEventListener("pointerdown", wake);
-  idleTimer=setInterval(() => {
-    if(document.hidden || cat.matches(".pet-bounce,.pet-wiggle,.pet-lick")) return;
-    const roll=Math.random();
-    if(roll<.18) { cat.classList.add("pet-blink"); setTimeout(()=>cat.classList.remove("pet-blink"),300); }
-    else if(roll<.36) { animate("pet-lick",1050); }
-    else if(roll<.48) { cat.classList.add("pet-sleep"); say("zzz... mimpi indah 💤"); }
-  }, 6500);
-  window.addEventListener("beforeunload", save);
+  document.getElementById("petDress").addEventListener("click", () => { state.look=(state.look+1)%looks.length; render(); cache(); scheduleCloudSave(); animate("pet-bounce",550); say("outfit baru: "+looks[state.look].label+" ✨"); sound("meow"); });
+  document.getElementById("petNameBtn").addEventListener("click", () => { const entered=prompt("Mau panggil kucingnya siapa?", state.name); if(entered !== null && entered.trim()) { state.name=entered.trim().replace(/\s+/g," ").slice(0,18); cache(); render(); scheduleCloudSave(); say("hai, aku "+state.name+"! 🐾"); sound("meow"); } });
+  pet.querySelector(".pet-cat-hitbox").addEventListener("pointerdown", () => cat.classList.remove("pet-sleep"));
+  idleTimer=setInterval(() => { if(document.hidden || cat.matches(".pet-bounce,.pet-wiggle,.pet-lick")) return; const roll=Math.random(); if(roll<.18) { cat.classList.add("pet-blink"); setTimeout(()=>cat.classList.remove("pet-blink"),300); } else if(roll<.36) { animate("pet-lick",1050); } else if(roll<.48) { cat.classList.add("pet-sleep"); say("zzz... mimpi indah 💤"); } }, 6500);
 })();
