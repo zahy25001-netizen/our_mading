@@ -111,6 +111,14 @@
     <small class="pet-hint">elus aku ♡</small>
   </aside>
 
+  <section class="shared-album" id="sharedAlbum" aria-label="Album kenangan bersama">
+    <div class="album-heading"><div><p class="tiny-label">OUR LITTLE GALLERY</p><h2>Album Kenangan ♡</h2><p>Foto-foto kecil yang ingin kita simpan selamanya.</p></div>
+      <label class="album-upload-btn">＋ Tambah foto<input id="albumPhotoInput" type="file" accept="image/*" multiple hidden></label></div>
+    <div class="album-status" id="albumStatus">Masuk ke room mading untuk berbagi album di semua perangkat.</div>
+    <div class="album-grid" id="albumGrid"></div>
+  </section>
+  <div class="album-lightbox hidden" id="albumLightbox" role="dialog" aria-modal="true"><button id="albumClose" aria-label="Tutup foto">×</button><img id="albumLarge" alt="Foto kenangan"><p id="albumCaption"></p></div>
+
   <div class="modal-backdrop hidden" id="editorModal">
     <div class="editor-modal">
       <button class="close-btn" id="closeEditor">×</button>
@@ -250,8 +258,10 @@
     </article>
   </template>
 
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="script.js"></script>
+  <script src="pet-world-upgrade.js"></script>
 </body>
 </html>
