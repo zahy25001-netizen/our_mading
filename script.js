@@ -390,7 +390,7 @@ async function joinRoom(){
   if(!sb)return;const code=$("#joinRoomCode").value.trim().toUpperCase(),author=$("#joinRoomAuthor").value.trim()||"Aku";if(!code){toast("Masukkan kode room.");return}
   try{const {data,error}=await sb.rpc("join_room",{p_code:code,p_author_name:author});if(error)throw error;activateRoom(data,author);closeRoomModal();toast("Berhasil masuk ke mading ♡")}catch(e){console.error(e);toast(`Gagal gabung: ${e.message||"kode salah"}`)}
 }
-function activateRoom(room,author){activeRoomId=room.id;authorName=author;roomName=room.name;localStorage.setItem("mading-active-room",room.id);localStorage.setItem("mading-active-code",room.code);localStorage.setItem("mading-author",author);localStorage.setItem("mading-room-name",room.name);updateRoomUI();subscribeRoom();loadNotes();document.dispatchEvent(new Event("mading-room-ready"))}
+function activateRoom(room,author){activeRoomId=room.id;authorName=author;roomName=room.name;localStorage.setItem("mading-active-room",room.id);localStorage.setItem("mading-active-code",room.code);localStorage.setItem("mading-author",author);localStorage.setItem("mading-room-name",room.name);updateRoomUI();subscribeRoom();loadNotes()}
 async function leaveRoom(){if(realtimeChannel&&sb){await sb.removeChannel(realtimeChannel);realtimeChannel=null}activeRoomId=null;notes=[];localStorage.removeItem("mading-active-room");localStorage.removeItem("mading-active-code");localStorage.removeItem("mading-room-name");updateRoomUI();render();closeRoomModal();toast("Kamu keluar dari room di perangkat ini.")}
 function openRoomModal(){if(!sb){toast("Isi supabase-config.js dulu sebelum membuat room.");return}$("#roomModal").classList.remove("hidden");$("#newRoomAuthor").value=authorName;$("#joinRoomAuthor").value=authorName;updateRoomUI()}
 function closeRoomModal(){$("#roomModal").classList.add("hidden")}
@@ -416,14 +416,14 @@ async function init(){
   if(!isConfigured){toast("Supabase belum dikonfigurasi. Isi supabase-config.js dulu.");openRoomModal();return}
   const ok=await ensureAuth();if(!ok)return;
   if(activeRoomId){
-    try{const {data,error}=await sb.from("rooms").select("id,code,name").eq("id",activeRoomId).single();if(error)throw error;roomName=data.name;localStorage.setItem("mading-active-code",data.code);updateRoomUI();await subscribeRoom();await loadNotes();document.dispatchEvent(new Event("mading-room-ready"));}
+    try{const {data,error}=await sb.from("rooms").select("id,code,name").eq("id",activeRoomId).single();if(error)throw error;roomName=data.name;localStorage.setItem("mading-active-code",data.code);updateRoomUI();await subscribeRoom();await loadNotes();}
     catch(e){console.warn(e);activeRoomId=null;localStorage.removeItem("mading-active-room");updateRoomUI();openRoomModal()}
   }else openRoomModal();
 }
 init();
 
 
-/* LITTLE CAT PET — room-synced profile + expressive companion. */
+/* LITTLE CAT PET — saved name + outfit, expressive idle animations. */
 (() => {
   const pet = document.getElementById("catPet");
   if (!pet) return;
@@ -432,7 +432,7 @@ init();
   const outfit = document.getElementById("petOutfit");
   const accessory = document.getElementById("petAccessory");
   const nameLabel = document.getElementById("petName");
-  const STORE_KEY = "mading-cat-pet-v3";
+  const STORE_KEY = "mading-cat-pet-v2";
   const looks = [
     { outfit:"", accessory:"🎀", label:"Pita pink" },
     { outfit:"pet-scarf", accessory:"🧢", label:"Hoodie biru" },
@@ -442,48 +442,58 @@ init();
     { outfit:"pet-heartshirt", accessory:"💕", label:"Kaos hati" },
     { outfit:"pet-raincoat", accessory:"☔", label:"Jas hujan" }
   ];
-  let moodTimer, idleTimer, soundCtx, syncChannel, syncTimer;
+  const messages = ["meow~ 🐾", "aku nemenin kamu ya!", "purr purr 💗", "jangan lupa istirahat", "semangat nulis kenangan!", "mau dielus lagi? 🐱"];
+  let moodTimer, idleTimer, soundCtx;
   let state = { name: "Mochi", look: 0 };
   try { const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); if(saved && typeof saved === "object") state = {...state, ...saved}; } catch(e) {}
-  state.name = String(state.name || "Mochi").slice(0,18);
   state.look = Math.max(0, Math.min(looks.length - 1, Number(state.look) || 0));
-  const localSave = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e) {} };
-  const say = (message) => { bubble.textContent = message; bubble.classList.add("show"); clearTimeout(moodTimer); moodTimer = setTimeout(() => bubble.classList.remove("show"), 2500); };
-  const animate = (name, duration=900) => { cat.classList.remove("pet-bounce", "pet-wiggle", "pet-lick", "pet-sleep"); void cat.offsetWidth; cat.classList.add(name); if(name !== "pet-sleep") setTimeout(() => cat.classList.remove(name), duration); };
-  const sound = (kind="meow") => { try { soundCtx ||= new (window.AudioContext || window.webkitAudioContext)(); if(soundCtx.state === "suspended") soundCtx.resume(); const now=soundCtx.currentTime, osc=soundCtx.createOscillator(), gain=soundCtx.createGain(); osc.connect(gain); gain.connect(soundCtx.destination); osc.type=kind === "purr" ? "triangle" : "sine"; osc.frequency.setValueAtTime(kind === "purr" ? 95 : 620, now); osc.frequency.exponentialRampToValueAtTime(kind === "purr" ? 125 : 360, now+.18); gain.gain.setValueAtTime(.0001,now); gain.gain.exponentialRampToValueAtTime(kind === "purr" ? .035 : .05,now+.025); gain.gain.exponentialRampToValueAtTime(.0001,now+.22); osc.start(now); osc.stop(now+.23); } catch(e) {} };
-  const render = () => { nameLabel.textContent = state.name; const look=looks[state.look]; outfit.className="pet-outfit"+(look.outfit ? " "+look.outfit : ""); accessory.textContent=look.accessory; pet.dataset.look=String(state.look); };
-  const applyRemote = row => { if(!row) return; state.name=String(row.pet_name || "Mochi").slice(0,18); state.look=Math.max(0,Math.min(looks.length-1,Number(row.outfit_index)||0)); localSave(); render(); };
-  const loadShared = async () => {
-    if(!window.sb && typeof sb === "undefined") return;
-    if(!activeRoomId || !sb) { localSave(); return; }
-    try { const {data,error}=await sb.from("pet_profiles").select("pet_name,outfit_index").eq("room_id",activeRoomId).maybeSingle(); if(error) throw error; if(data) applyRemote(data); else await saveShared(); }
-    catch(e) { console.warn("Profil pet bersama belum tersedia; jalankan PET-SYNC.sql di Supabase.",e); say("Agar sama di semua perangkat, aktifkan sinkronisasi pet di Supabase ♡"); }
+  const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e) { console.warn("Pet tidak dapat disimpan di browser ini", e); } };
+  const say = (message) => {
+    bubble.textContent = message; bubble.classList.add("show"); clearTimeout(moodTimer);
+    moodTimer = setTimeout(() => bubble.classList.remove("show"), 2500);
   };
-  const saveShared = async () => {
-    localSave();
-    if(!sb || !activeRoomId) { say("Tersimpan di perangkat ini. Gabung room agar tersinkron ♡"); return; }
-    try { const payload={room_id:activeRoomId,pet_name:state.name,outfit_index:state.look,updated_at:new Date().toISOString()}; const {error}=await sb.from("pet_profiles").upsert(payload,{onConflict:"room_id"}); if(error) throw error; }
-    catch(e) { console.warn("Gagal menyinkronkan pet:",e); say("Tersimpan di perangkat ini; cek setup sinkronisasi Supabase ♡"); }
+  const animate = (name, duration=900) => {
+    cat.classList.remove("pet-bounce", "pet-wiggle", "pet-lick", "pet-sleep");
+    void cat.offsetWidth; cat.classList.add(name);
+    if(name !== "pet-sleep") setTimeout(() => cat.classList.remove(name), duration);
   };
-  const scheduleSave = () => { localSave(); clearTimeout(syncTimer); syncTimer=setTimeout(saveShared,250); };
-  const subscribeShared = () => {
-    if(!sb || !activeRoomId) return;
-    if(syncChannel) sb.removeChannel(syncChannel);
-    syncChannel=sb.channel("pet-profile-"+activeRoomId).on("postgres_changes",{event:"*",schema:"public",table:"pet_profiles",filter:`room_id=eq.${activeRoomId}`},payload=>{ if(payload.new && payload.new.room_id===activeRoomId) applyRemote(payload.new); }).subscribe();
-    loadShared();
+  const sound = (kind="meow") => {
+    try {
+      soundCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+      if(soundCtx.state === "suspended") soundCtx.resume();
+      const now=soundCtx.currentTime, osc=soundCtx.createOscillator(), gain=soundCtx.createGain();
+      osc.connect(gain); gain.connect(soundCtx.destination); osc.type=kind === "purr" ? "triangle" : "sine";
+      osc.frequency.setValueAtTime(kind === "purr" ? 95 : 620, now);
+      osc.frequency.exponentialRampToValueAtTime(kind === "purr" ? 125 : 360, now+.18);
+      gain.gain.setValueAtTime(.0001,now); gain.gain.exponentialRampToValueAtTime(kind === "purr" ? .035 : .05,now+.025);
+      gain.gain.exponentialRampToValueAtTime(.0001,now+.22); osc.start(now); osc.stop(now+.23);
+    } catch(e) {}
   };
-  document.addEventListener("mading-room-ready", subscribeShared);
-  render();
-  if(activeRoomId) subscribeShared();
+  const render = () => {
+    nameLabel.textContent = state.name;
+    const look=looks[state.look]; outfit.className="pet-outfit"+(look.outfit ? " "+look.outfit : "");
+    accessory.textContent=look.accessory; pet.dataset.look=String(state.look);
+  };
   const hearts = () => { for(let i=0;i<3;i++){ const h=document.createElement("span"); h.className="pet-heart"; h.textContent=["♥","✦","♡"][i]; pet.appendChild(h); setTimeout(()=>h.remove(),1100); } };
-  const petCat = () => { cat.classList.remove("pet-sleep"); animate("pet-bounce",650); say(["meowww! 💗","enakkk dielus","purrrr...","sayang kamu 🐾"][Math.floor(Math.random()*4)]); sound(Math.random()>.55?"purr":"meow"); hearts(); };
+  const petCat = () => { animate("pet-bounce",550); say(["meowww! 💗","enakkk dielus","purrrr...","sayang kamu 🐾"][Math.floor(Math.random()*4)]); sound(Math.random()>.55?"purr":"meow"); hearts(); };
+  render();
   pet.querySelector(".pet-cat-hitbox").addEventListener("click", petCat);
-  document.getElementById("petFeed").addEventListener("click", () => { animate("pet-lick",1050); say("nyam nyam... makasih ya 🐟"); sound("purr"); });
-  document.getElementById("petPlay").addEventListener("click", () => { animate("pet-wiggle",900); say("tangkap benangnya! 🧶"); sound("meow"); hearts(); });
-  document.getElementById("petDress").addEventListener("click", () => { state.look=(state.look+1)%looks.length; scheduleSave(); render(); animate("pet-bounce",550); say("outfit baru: "+looks[state.look].label+" ✨"); sound("meow"); });
-  document.getElementById("petNameBtn").addEventListener("click", () => { const entered=prompt("Mau panggil kucingnya siapa?",state.name); if(entered!==null && entered.trim()) { state.name=entered.trim().replace(/\s+/g," ").slice(0,18); scheduleSave(); render(); say("hai, aku "+state.name+"! 🐾"); sound("meow"); } });
-  const wake = () => cat.classList.remove("pet-sleep");
-  pet.querySelector(".pet-cat-hitbox").addEventListener("pointerdown",wake);
-  idleTimer=setInterval(()=>{ if(document.hidden || cat.matches(".pet-bounce,.pet-wiggle,.pet-lick")) return; const roll=Math.random(); if(roll<.18){cat.classList.add("pet-blink");setTimeout(()=>cat.classList.remove("pet-blink"),300);} else if(roll<.36){animate("pet-lick",1050);} else if(roll<.48){cat.classList.add("pet-sleep");say("zzz... mimpi indah 💤");}},6500);
-  window.addEventListener("beforeunload",localSave);
+  document.getElementById("petFeed").addEventListener("click", () => { animate("pet-lick",1000); say("nyam nyam... makasih ya 🐟"); sound("purr"); });
+  document.getElementById("petPlay").addEventListener("click", () => { animate("pet-wiggle",850); say("tangkap benangnya! 🧶"); sound("meow"); hearts(); });
+  document.getElementById("petDress").addEventListener("click", () => { state.look=(state.look+1)%looks.length; save(); render(); animate("pet-bounce",550); say("outfit baru: "+looks[state.look].label+" ✨"); sound("meow"); });
+  document.getElementById("petNameBtn").addEventListener("click", () => {
+    const entered=prompt("Mau panggil kucingnya siapa?", state.name);
+    if(entered !== null && entered.trim()) { state.name=entered.trim().replace(/\s+/g," ").slice(0,18); save(); render(); say("hai, aku "+state.name+"! 🐾"); sound("meow"); }
+  });
+  // Natural idle behavior: blink, groom, and curl up for a nap. Any interaction wakes the cat.
+  const wake = () => { cat.classList.remove("pet-sleep"); };
+  pet.querySelector(".pet-cat-hitbox").addEventListener("pointerdown", wake);
+  idleTimer=setInterval(() => {
+    if(document.hidden || cat.matches(".pet-bounce,.pet-wiggle,.pet-lick")) return;
+    const roll=Math.random();
+    if(roll<.18) { cat.classList.add("pet-blink"); setTimeout(()=>cat.classList.remove("pet-blink"),300); }
+    else if(roll<.36) { animate("pet-lick",1050); }
+    else if(roll<.48) { cat.classList.add("pet-sleep"); say("zzz... mimpi indah 💤"); }
+  }, 6500);
+  window.addEventListener("beforeunload", save);
 })();
