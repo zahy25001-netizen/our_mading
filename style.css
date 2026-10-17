@@ -183,72 +183,35 @@ box-shadow:inset 0 0 45px rgba(42,24,15,.3),0 18px 40px rgba(51,33,23,.18)}
 @keyframes cat-groom{from{transform:rotate(0)}to{transform:rotate(9deg) translateY(2px)}}
 @media(max-width:600px){.cat-pet{right:8px;bottom:8px;transform:scale(.84);transform-origin:bottom right}.pet-cat-hitbox{height:126px}}
 
-/* NIGHT CITY CAT — richer ginger-tabby companion and polished pet card */
-.cat-pet{width:220px;padding:13px 13px 11px;border-radius:24px;color:#f9e8e6;background:linear-gradient(155deg,rgba(30,18,28,.96),rgba(62,24,34,.94) 58%,rgba(28,26,39,.96));border:1px solid rgba(255,174,157,.5);box-shadow:0 18px 48px #21080b66,0 0 0 1px #ffb4a522,inset 0 1px 0 #ffffff25;}
-.pet-name-row{font-size:15px;color:#ffe5e4;letter-spacing:.02em;margin-bottom:5px}.pet-name-row button{color:#ffc4bf;font-size:14px}
-.pet-bubble{background:#fff0ec;color:#6e2732;font-family:inherit;font-size:12px;border:1px solid #ffc3b7;box-shadow:0 6px 24px #18060b55}
-.pet-cat-hitbox{width:180px;height:164px}
-.pet-cat{left:31px;top:8px;width:118px;height:148px;transform-origin:50% 88%;filter:drop-shadow(0 10px 8px #0d080c77)}
-.cat-head{left:25px;top:18px;width:70px;height:61px;border-radius:48% 48% 44% 44%;border:1px solid #a95b2e;background:radial-gradient(ellipse at 36% 25%,#ffdba0 0,#d98a3f 44%,#93421f 100%);box-shadow:inset -6px -6px 0 #71351f55,inset 3px 2px 5px #fff4b955;}
-.cat-head:before{content:"";position:absolute;left:27px;top:2px;width:9px;height:28px;border-radius:50%;background:linear-gradient(#6d321eaa,#a44b23aa);transform:rotate(4deg);box-shadow:-17px 7px 0 -2px #873a20aa,17px 7px 0 -2px #873a20aa;}
-.cat-head:after{content:"";position:absolute;left:20px;top:39px;width:30px;height:16px;border-radius:50%;background:#f9d4a0;box-shadow:0 0 0 1px #f9d4a044;}
-.cat-ear{top:5px;width:32px;height:39px;background:linear-gradient(130deg,#f8bd73,#a9512b);border:1px solid #a85a31;filter:drop-shadow(0 2px 1px #30150e55)}
-.cat-ear:after{inset:8px 7px 6px;background:linear-gradient(140deg,#f3a0a1,#b85a63)}
-.cat-ear-left{left:24px}.cat-ear-right{right:24px}
-.cat-eye{z-index:2;top:25px;width:10px;height:12px;border-radius:50%;background:radial-gradient(circle at 34% 28%,#fff 0 11%,#8f9d42 16% 43%,#1a1713 48% 100%);box-shadow:0 0 0 1px #4c2a1a,0 0 6px #d9df8c66}
-.eye-left{left:14px}.eye-right{right:14px}
-.cat-nose{z-index:4;left:31px;top:40px;width:8px;height:6px;background:#ef9b9b;border-radius:45% 45% 55% 55%;clip-path:polygon(0 0,100% 0,50% 100%)}
-.cat-mouth{z-index:4;left:29px;top:45px;width:12px;height:7px;border-bottom:1.5px solid #55291d;border-radius:50%}
-.cat-whisker{z-index:4;top:44px;width:23px;height:1px;background:#ffe2b4;box-shadow:0 4px 0 #ffe2b499}.whisker-left{right:54px;transform:rotate(8deg)}.whisker-right{left:54px;transform:rotate(-8deg)}
-.cat-body{left:22px;top:69px;width:73px;height:69px;border:1px solid #9e4c27;border-radius:46% 46% 37% 37%;background:radial-gradient(ellipse at 38% 20%,#f9c17a 0,#d98239 48%,#8e411f 100%);box-shadow:inset -7px -5px 0 #70341f66,inset 3px 2px 5px #fff3b333}
-.cat-body:before{left:24px;top:8px;width:20px;height:48px;border-radius:48%;background:linear-gradient(90deg,#f3c083,#ffdda2,#ce7738);box-shadow:-17px -2px 0 -6px #873b21aa,17px -2px 0 -6px #873b21aa;}
-.cat-paw{z-index:6;top:126px;width:32px;height:22px;border-radius:48% 48% 44% 44%;background:linear-gradient(135deg,#ffd79e,#bc6c37);border:1px solid #a85a31;box-shadow:inset 0 -4px 0 #70371f44}
-.paw-left{left:18px}.paw-right{right:17px}
-.cat-tail{right:-1px;top:78px;width:42px;height:48px;border-width:10px;border-color:#d17a3b;border-left-color:transparent;border-bottom-color:transparent;filter:drop-shadow(0 2px 1px #30150e55)}
-.pet-outfit{left:24px;top:81px;width:71px;height:45px;border-radius:22px 22px 15px 15px;box-shadow:inset 0 3px 0 #ffffff55,0 4px 4px #16080b55}
-.pet-outfit:before{left:-7px;top:7px;width:17px;height:27px;border-radius:10px 4px 9px 8px}.pet-outfit:after{right:-7px;top:7px;width:17px;height:27px;border-radius:4px 10px 8px 9px}
-.pet-outfit.pet-scarf{left:23px;top:78px;width:75px;height:49px;border-radius:16px 16px 17px 17px;background:linear-gradient(135deg,#8fb8dc,#31557d);border:1px solid #294668;border-bottom:7px solid #d4e9f8}
-.pet-outfit.pet-scarf:before{left:22px;top:36px;width:15px;height:20px;background:#4f82b1}.pet-outfit.pet-cape{left:19px;top:78px;width:80px;height:49px;background:linear-gradient(135deg,#b89add,#65417e);border:2px solid #d6c3eb}.pet-outfit.pet-sweater{left:21px;top:78px;width:76px;height:50px;background:repeating-linear-gradient(0deg,#8da77e 0 8px,#d5e2c9 8px 10px);border-bottom:7px solid #e3e9ce}.pet-outfit.pet-overalls{left:28px;top:86px;width:61px;height:43px;background:linear-gradient(90deg,#547da0,#a9c7dd 50%,#547da0);border-bottom:6px solid #d1e0ed}.pet-outfit.pet-heartshirt{left:23px;top:80px;width:73px;height:47px;background:radial-gradient(circle at 50% 17px,#fff 0 4px,transparent 4.5px),linear-gradient(135deg,#f3a1b7,#bd416a);border:1px solid #c94e75}.pet-outfit.pet-raincoat{left:20px;top:78px;width:78px;height:49px;background:linear-gradient(135deg,#f4d76d,#bd851e);border:1px solid #bd9024;border-bottom:6px solid #fff0a6}
-.pet-accessory{top:4px;left:78px;font-size:24px}.pet-controls{gap:10px;margin-top:4px}.pet-controls button{width:39px;height:37px;border-radius:13px;border:1px solid #ffc4b733;background:linear-gradient(145deg,#44212b,#261923);color:#ffe8e5;box-shadow:inset 0 1px 0 #ffffff1c;font-size:18px}.pet-controls button:hover{background:#6b2d3a;transform:translateY(-2px)}.pet-hint{color:#e9b5b1;font-size:9px}
-.pet-sleep{animation:cat-doze 2.7s ease-in-out infinite!important}.pet-sleep .cat-eye{height:2px!important;top:29px;transform:scaleY(.2)}
-@keyframes cat-tail-sway{0%,100%{transform:rotate(24deg)}50%{transform:rotate(4deg)}}
-@media(max-width:600px){.cat-pet{right:7px;bottom:7px;width:194px;transform:scale(.84);transform-origin:bottom right}.pet-cat-hitbox{height:155px}}
 
-
-/* STRAY-inspired 3D companion + shared memory gallery */
-.cat-pet{width:clamp(220px,25vw,310px);padding:14px 14px 12px;background:linear-gradient(150deg,rgba(25,21,28,.92),rgba(53,30,32,.88));border-color:rgba(255,206,160,.35);color:#fff1e8;box-shadow:0 18px 55px #180a0bcc,0 0 32px #ff78301c;}
-.cat-pet::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(ellipse at 50% 8%,#ff9d4830,transparent 58%);pointer-events:none;z-index:-1}
-.pet-cat-hitbox{width:100%;height:250px;max-height:34vh;min-height:180px;border-radius:18px;overflow:hidden;background:radial-gradient(ellipse at 50% 85%,#e7773333,transparent 60%),linear-gradient(180deg,#191a2a,#3a2026 65%,#160f16);box-shadow:inset 0 0 0 1px #ffc38b2a,inset 0 -18px 35px #08070b80;}
-.pet-cat-hitbox::after{content:"";position:absolute;inset:auto 10% 8% 10%;height:12%;border-radius:50%;background:#ff9a3a30;filter:blur(15px);pointer-events:none}
-#pet3dCanvas{display:block;width:100%;height:100%;outline:none;cursor:grab;}
-#pet3dCanvas:active{cursor:grabbing}.pet-cat-hitbox>.pet-cat,.pet-cat-hitbox>.pet-accessory{display:none!important}
-.pet-name-row{color:#ffe2c9;font-size:17px}.pet-bubble{background:#fff0e6;color:#60372a;border:1px solid #f8c9a3;box-shadow:0 4px 18px #0004}
-.pet-controls button{background:#4c3035;color:#ffe4d5;border:1px solid #c87f5d;border-radius:50%;width:36px;height:36px;cursor:pointer;transition:transform .2s,background .2s}.pet-controls button:hover{transform:translateY(-3px);background:#75413d}
-.pet-hint{color:#f6c7a5}.cat-pet[data-weather="rain"] .pet-cat-hitbox{background:linear-gradient(180deg,#121b31,#27334a 70%,#111520)}
-.cat-pet[data-time="night"] .pet-cat-hitbox{filter:brightness(.78)}
+/* Shared album layout */
 .shared-album{max-width:1100px;margin:50px auto 100px;padding:clamp(18px,4vw,38px);border-radius:28px;background:linear-gradient(135deg,#fff9f1,#f3e4df);color:#44312e;box-shadow:0 20px 60px #5b38201b;border:1px solid #fff}
-.album-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}.album-heading h2{font:600 clamp(26px,4vw,40px) "Playfair Display",serif;margin:0}.album-heading p:not(.tiny-label){margin:8px 0;color:#826e66}.album-upload-btn{background:#713e3d;color:#fff4eb;padding:12px 17px;border-radius:999px;cursor:pointer;font-size:13px;box-shadow:0 7px 20px #5d2f2c2b}.album-status{font-size:12px;color:#8b7770;margin:18px 0}.album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:20px}.album-polaroid{background:white;padding:9px 9px 28px;box-shadow:0 9px 25px #533b3024;transform:rotate(var(--tilt,-2deg));transition:transform .25s,box-shadow .25s;cursor:pointer;animation:polaroid-in .45s both;position:relative}.album-polaroid:hover{transform:rotate(0) translateY(-5px) scale(1.025);box-shadow:0 18px 32px #533b3035}.album-polaroid img{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#eadfd7}.album-polaroid span{position:absolute;bottom:7px;left:10px;right:10px;text-align:center;font:17px Caveat,cursive;color:#74544a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.album-polaroid .album-delete{position:absolute;top:12px;right:12px;border:0;border-radius:50%;background:#2c2020b8;color:white;width:28px;height:28px;cursor:pointer}.album-lightbox{position:fixed;z-index:120;inset:0;background:#100b0df2;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:28px;animation:polaroid-in .25s}.album-lightbox.hidden{display:none}.album-lightbox img{max-width:min(90vw,900px);max-height:78vh;object-fit:contain;box-shadow:0 20px 80px #0009}.album-lightbox p{color:#fff1e7;font:24px Caveat,cursive}.album-lightbox button{position:absolute;right:22px;top:12px;border:0;background:transparent;color:white;font-size:42px;cursor:pointer}@keyframes polaroid-in{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-@media(max-width:650px){.cat-pet{right:8px;bottom:8px;width:190px;padding:10px;border-radius:20px}.pet-cat-hitbox{height:185px;min-height:155px}.pet-controls{gap:5px}.shared-album{margin:30px 12px 100px}.album-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
-
-/* PATCH: pet menu is collapsible and never covers the notes/upload controls. */
-.pet-head-actions{display:flex;align-items:center;gap:5px;margin-left:auto}
-.pet-name-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
-#petCollapseBtn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid #ffc4b733;border-radius:9px;background:#4c3035;color:#ffe4d5;font-size:19px;line-height:1;cursor:pointer;flex-shrink:0}
-.cat-pet{z-index:35;max-height:min(78vh,560px);overflow-y:auto;overscroll-behavior:contain}
-.cat-pet.pet-collapsed{width:auto!important;max-width:155px;max-height:none;min-height:0;padding:8px 10px!important;border-radius:18px;overflow:visible}
-.cat-pet.pet-collapsed .pet-bubble,.cat-pet.pet-collapsed .pet-cat-hitbox,.cat-pet.pet-collapsed .pet-controls,.cat-pet.pet-collapsed .pet-hint{display:none!important}
-.cat-pet.pet-collapsed .pet-name-row{margin:0;font-size:13px}
-.cat-pet.pet-collapsed #petNameBtn{display:none}
-.cat-pet.pet-collapsed #petCollapseBtn{width:32px;height:32px}
+.shared-album{margin:30px 12px 100px}
+.shared-album{scroll-margin-top:16px}
+.album-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.album-heading h2{font:600 clamp(26px,4vw,40px) "Playfair Display",serif;margin:0}
+.album-heading p:not(.tiny-label){margin:8px 0;color:#826e66}
+.album-heading{align-items:flex-start}
+.album-upload-btn{background:#713e3d;color:#fff4eb;padding:12px 17px;border-radius:999px;cursor:pointer;font-size:13px;box-shadow:0 7px 20px #5d2f2c2b}
+.album-upload-btn{position:relative;z-index:2;white-space:nowrap}
+.album-status{font-size:12px;color:#8b7770;margin:18px 0}
+.album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:20px}
+.album-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.album-polaroid{background:white;padding:9px 9px 28px;box-shadow:0 9px 25px #533b3024;transform:rotate(var(--tilt,-2deg));transition:transform .25s,box-shadow .25s;cursor:pointer;animation:polaroid-in .45s both;position:relative}
+.album-polaroid:hover{transform:rotate(0) translateY(-5px) scale(1.025);box-shadow:0 18px 32px #533b3035}
+.album-polaroid img{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#eadfd7}
+.album-polaroid span{position:absolute;bottom:7px;left:10px;right:10px;text-align:center;font:17px Caveat,cursive;color:#74544a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.album-polaroid .album-delete{position:absolute;top:12px;right:12px;border:0;border-radius:50%;background:#2c2020b8;color:white;width:28px;height:28px;cursor:pointer}
 .album-polaroid{display:block;border:0;text-align:inherit;min-width:0}
-.album-photo-open{display:block;width:100%;padding:0;border:0;background:transparent;cursor:pointer;text-align:inherit}
 .album-polaroid .album-delete{z-index:3;display:flex;align-items:center;justify-content:center;border:1px solid #ffffffa8;box-shadow:0 2px 9px #0003;font-size:22px;line-height:1}
 .album-polaroid .album-delete:disabled{opacity:.5;cursor:wait}
-@media(max-width:650px){
- .cat-pet{right:8px;bottom:8px;width:min(190px,48vw);max-height:62vh;padding:9px;z-index:35}
- .cat-pet:not(.pet-collapsed) .pet-cat-hitbox{height:150px;min-height:130px}
- .cat-pet.pet-collapsed{width:auto!important;max-width:145px;right:8px;bottom:8px}
- .shared-album{scroll-margin-top:16px}
- .album-heading{align-items:flex-start}
- .album-upload-btn{position:relative;z-index:2;white-space:nowrap}
-}
+.album-photo-open{display:block;width:100%;padding:0;border:0;background:transparent;cursor:pointer;text-align:inherit}
+.album-delete{position:absolute;top:12px;right:12px;border:0;border-radius:50%;background:#2c2020b8;color:white;width:28px;height:28px;cursor:pointer}
+.album-delete{z-index:3;display:flex;align-items:center;justify-content:center;border:1px solid #ffffffa8;box-shadow:0 2px 9px #0003;font-size:22px;line-height:1}
+.album-delete:disabled{opacity:.5;cursor:wait}
+.album-lightbox{position:fixed;z-index:120;inset:0;background:#100b0df2;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:28px;animation:polaroid-in .25s}
+.album-lightbox.hidden{display:none}
+.album-lightbox img{max-width:min(90vw,900px);max-height:78vh;object-fit:contain;box-shadow:0 20px 80px #0009}
+.album-lightbox p{color:#fff1e7;font:24px Caveat,cursive}
+.album-lightbox button{position:absolute;right:22px;top:12px;border:0;background:transparent;color:white;font-size:42px;cursor:pointer}
+.album-lightbox.hidden{display:none}
